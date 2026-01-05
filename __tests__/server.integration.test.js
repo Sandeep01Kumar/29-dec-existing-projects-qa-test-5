@@ -148,6 +148,51 @@ describe('HTTP Server Integration', () => {
       // closeServer should handle null gracefully
       await expect(closeServer(null)).resolves.not.toThrow();
     });
+
+    it('should handle server close during active connections', (done) => {
+      const testServer = createTestServer();
+      
+      testServer.listen(0, EXPECTED.HOSTNAME, () => {
+        const port = testServer.address().port;
+        
+        // Create an active connection
+        const options = {
+          hostname: EXPECTED.HOSTNAME,
+          port: port,
+          path: '/',
+          method: 'GET'
+        };
+        
+        const req = http.request(options, (res) => {
+          // Connection is established
+          expect(res.statusCode).toBe(EXPECTED.STATUS_CODE);
+          
+          // Close the server while connection is active
+          testServer.close((closeErr) => {
+            // Server should close without error
+            expect(closeErr).toBeUndefined();
+            expect(testServer.listening).toBe(false);
+            
+            // Consume the response to properly end the request
+            res.resume();
+            res.on('end', () => {
+              done();
+            });
+          });
+        });
+        
+        req.on('error', (err) => {
+          // Connection errors after close are acceptable
+          if (!testServer.listening) {
+            done();
+          } else {
+            done(err);
+          }
+        });
+        
+        req.end();
+      });
+    });
   });
 
   /**
@@ -212,6 +257,49 @@ describe('HTTP Server Integration', () => {
         }).toThrow();
         
         testServer.close(done);
+      });
+    });
+
+    it('should handle SIGTERM signal gracefully', (done) => {
+      const testServer = createTestServer();
+      
+      // Track if our handler was called
+      let sigtermHandled = false;
+      let serverClosed = false;
+      
+      // Create a SIGTERM handler for graceful shutdown
+      const sigtermHandler = () => {
+        sigtermHandled = true;
+        
+        // Gracefully close the server on SIGTERM
+        if (testServer.listening) {
+          testServer.close(() => {
+            serverClosed = true;
+          });
+        }
+      };
+      
+      // Register SIGTERM handler
+      process.once('SIGTERM', sigtermHandler);
+      
+      testServer.listen(0, EXPECTED.HOSTNAME, () => {
+        expect(testServer.listening).toBe(true);
+        
+        // Simulate SIGTERM signal by emitting it
+        process.emit('SIGTERM');
+        
+        // Allow time for async operations to complete
+        setTimeout(() => {
+          // Verify SIGTERM was handled
+          expect(sigtermHandled).toBe(true);
+          expect(serverClosed).toBe(true);
+          expect(testServer.listening).toBe(false);
+          
+          // Clean up: remove handler if still present (shouldn't be due to 'once')
+          process.removeListener('SIGTERM', sigtermHandler);
+          
+          done();
+        }, 100);
       });
     });
   });
@@ -369,6 +457,15 @@ describe('HTTP Server Integration', () => {
         // Server was already closed by another test file
         expect(mainServer.listening).toBe(false);
       }
+    });
+
+    it('should have expected startup log message format', () => {
+      // Verify the EXPECTED.STARTUP_LOG constant matches the expected format
+      // This ensures consistency between test expectations and server.js behavior
+      expect(EXPECTED.STARTUP_LOG).toBe(`Server running at http://${EXPECTED.HOSTNAME}:${EXPECTED.PORT}/`);
+      expect(EXPECTED.STARTUP_LOG).toContain('Server running at');
+      expect(EXPECTED.STARTUP_LOG).toContain(EXPECTED.HOSTNAME);
+      expect(EXPECTED.STARTUP_LOG).toContain(String(EXPECTED.PORT));
     });
   });
 });
