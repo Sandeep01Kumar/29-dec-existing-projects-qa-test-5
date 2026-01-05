@@ -92,5 +92,14 @@ module.exports = {
    * This prevents mocked behavior from affecting subsequent tests and ensures
    * console.log spies and other mocks are properly cleaned up.
    */
-  restoreMocks: true
+  restoreMocks: true,
+
+  /**
+   * Force Exit
+   * Force Jest to exit after all tests have completed running.
+   * This is necessary because server.js auto-starts when imported, which can
+   * leave open handles. The tests properly close the server, but due to
+   * parallel test execution timing, the forceExit ensures clean termination.
+   */
+  forceExit: true
 };

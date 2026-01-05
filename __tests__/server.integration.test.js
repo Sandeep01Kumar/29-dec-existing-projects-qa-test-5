@@ -329,7 +329,7 @@ describe('HTTP Server Integration', () => {
    * Main Server Module Tests
    * 
    * Tests that verify the actual server.js module behavior.
-   * These tests run without closing the main server since other test files may use it.
+   * Includes proper cleanup to ensure the main server is closed after tests.
    */
   describe('Main Server Module', () => {
     let mainServer;
@@ -337,6 +337,13 @@ describe('HTTP Server Integration', () => {
     beforeAll(() => {
       // Import server - it may or may not be listening depending on test order
       mainServer = require('../server');
+    });
+
+    afterAll(async () => {
+      // Ensure the main server is properly closed to prevent open handles
+      if (mainServer && mainServer.listening) {
+        await closeServer(mainServer);
+      }
     });
 
     it('should export a valid HTTP server instance', () => {
