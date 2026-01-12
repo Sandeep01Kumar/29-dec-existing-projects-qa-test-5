@@ -15,8 +15,8 @@ yarn-error.log*
 !.env.example
 
 # Log files
+logs/
 *.log
-logs/*.log
 !logs/.gitkeep
 
 # IDE and editor files
