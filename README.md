@@ -1,72 +1,125 @@
 # hao-backprop-test
 
-A simple Node.js HTTP server built with Express.js framework.
+A simple Node.js HTTP server built with Express.js that demonstrates basic routing with multiple endpoints.
 
 ## Description
 
-This project provides a basic HTTP server with two endpoints:
-- `/` - Returns "Hello, World!" greeting
-- `/evening` - Returns "Good evening" greeting
+This project is a lightweight HTTP server using the Express.js framework. It provides two API endpoints:
+- A "Hello World" endpoint at the root path
+- A "Good evening" endpoint for alternative greetings
 
 ## Prerequisites
 
-- Node.js 18+ (tested with v20.19.6)
-- npm (Node Package Manager)
+Before running this application, ensure you have the following installed:
+
+- **Node.js** version 18.0.0 or higher (required for Express.js 5.x)
+- **npm** (Node Package Manager) - typically included with Node.js
+
+To verify your Node.js version:
+```bash
+node --version
+```
 
 ## Installation
 
+1. Clone or download this repository to your local machine.
+
+2. Navigate to the project directory:
+```bash
+cd hao-backprop-test
+```
+
+3. Install the dependencies:
 ```bash
 npm install
 ```
 
+This will install Express.js and all required dependencies defined in `package.json`.
+
 ## Running the Server
 
-```bash
-npm start
-```
+You can start the server using either of the following methods:
 
-or
-
+**Using Node.js directly:**
 ```bash
 node server.js
 ```
 
-The server will start on port 3000.
+**Using npm start script:**
+```bash
+npm start
+```
+
+Once started, you should see the following message in your console:
+```
+Server running at http://localhost:3000/
+```
+
+The server will listen on port 3000 by default.
 
 ## API Endpoints
 
 ### GET /
 
-Returns the classic "Hello, World!" greeting.
+Returns a "Hello, World!" greeting message.
 
 **Request:**
+```
+GET http://localhost:3000/
+```
+
+**Response:**
+- **Status Code:** 200 OK
+- **Content-Type:** text/plain
+- **Body:** `Hello, World!`
+
+### GET /evening
+
+Returns a "Good evening" greeting message.
+
+**Request:**
+```
+GET http://localhost:3000/evening
+```
+
+**Response:**
+- **Status Code:** 200 OK
+- **Content-Type:** text/plain
+- **Body:** `Good evening`
+
+## Testing with curl
+
+You can test the API endpoints using curl commands:
+
+**Test the Hello World endpoint:**
 ```bash
 curl http://localhost:3000/
 ```
 
-**Response:**
+Expected output:
 ```
 Hello, World!
 ```
 
-### GET /evening
-
-Returns a "Good evening" greeting.
-
-**Request:**
+**Test the Good Evening endpoint:**
 ```bash
 curl http://localhost:3000/evening
 ```
 
-**Response:**
+Expected output:
 ```
 Good evening
 ```
 
-## Tech Stack
+## Project Structure
 
-- **Runtime:** Node.js 18+
-- **Framework:** Express.js 5.2.1
+```
+hao-backprop-test/
+├── server.js          # Main Express.js server with route handlers
+├── package.json       # Project manifest with dependencies
+├── package-lock.json  # Dependency lock file
+└── README.md          # This documentation file
+```
 
 ## License
 
