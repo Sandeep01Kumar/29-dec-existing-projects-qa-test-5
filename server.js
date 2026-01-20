@@ -1,12 +1,12 @@
 /**
- * @fileoverview Simple HTTP server that responds with "Hello, World!" to all requests.
- * This module creates a basic Node.js HTTP server using the built-in http module.
- * The server binds to localhost (127.0.0.1) on port 3000 and responds to all
- * incoming HTTP requests with a plain text "Hello, World!" message.
+ * @fileoverview Express.js HTTP server with multiple endpoints.
+ * This module creates a Node.js HTTP server using the Express.js framework.
+ * The server binds to localhost (127.0.0.1) on port 3000 and provides
+ * two endpoints: "/" for "Hello, World!" and "/evening" for "Good evening".
  *
  * @module server
  * @author hxu
- * @requires http
+ * @requires express
  * @version 1.0.0
  * @license MIT
  *
@@ -16,18 +16,18 @@
  * // Server running at http://127.0.0.1:3000/
  *
  * @example
- * // Test the server with curl:
+ * // Test the Hello World endpoint with curl:
  * // $ curl http://127.0.0.1:3000/
  * // Hello, World!
  *
  * @example
- * // Test with any HTTP method:
- * // $ curl -X POST http://127.0.0.1:3000/any/path
- * // Hello, World!
+ * // Test the Good Evening endpoint with curl:
+ * // $ curl http://127.0.0.1:3000/evening
+ * // Good evening
  */
 
-// Import the built-in Node.js HTTP module for creating HTTP servers
-const http = require('http');
+// Import the Express.js framework for creating HTTP servers with routing
+const express = require('express');
 
 /**
  * Server hostname - binds to localhost only for security.
@@ -48,42 +48,57 @@ const hostname = '127.0.0.1';
 const port = 3000;
 
 /**
- * HTTP server instance created using Node.js http.createServer().
- * This server handles all incoming HTTP requests with a single callback
- * function that returns a "Hello, World!" response regardless of the
- * request method, path, or headers.
+ * Express application instance.
+ * This application handles incoming HTTP requests with dedicated route handlers
+ * for different endpoints instead of a single catch-all callback.
  *
- * @type {http.Server}
- *
- * Request Handler Behavior:
- * - Accepts any HTTP method (GET, POST, PUT, DELETE, etc.)
- * - Accepts any URL path (/, /api, /test, etc.)
- * - Always returns HTTP status code 200 (OK)
- * - Always returns Content-Type: text/plain header
- * - Always returns "Hello, World!\n" as the response body
+ * @type {express.Application}
  */
-const server = http.createServer((req, res) => {
-  // Set the HTTP status code to 200 (OK) indicating successful request
-  res.statusCode = 200;
+const app = express();
 
-  // Set the Content-Type header to indicate plain text response
-  // This tells the client how to interpret the response body
-  res.setHeader('Content-Type', 'text/plain');
-
-  // Send the response body and end the response
+/**
+ * Hello World route handler.
+ * Handles GET requests to the root path "/" and responds with "Hello, World!".
+ *
+ * @name GET /
+ * @function
+ * @memberof module:server
+ * @param {express.Request} req - Express request object
+ * @param {express.Response} res - Express response object
+ * @returns {void} Sends plain text response "Hello, World!\n"
+ */
+app.get('/', (req, res) => {
+  // Set content type to plain text and send the Hello World response
   // The newline character ensures proper formatting in terminal output
-  res.end('Hello, World!\n');
+  res.type('text/plain').send('Hello, World!\n');
 });
 
 /**
- * Start the HTTP server and begin listening for incoming connections.
+ * Good Evening route handler.
+ * Handles GET requests to the "/evening" path and responds with "Good evening".
+ *
+ * @name GET /evening
+ * @function
+ * @memberof module:server
+ * @param {express.Request} req - Express request object
+ * @param {express.Response} res - Express response object
+ * @returns {void} Sends plain text response "Good evening\n"
+ */
+app.get('/evening', (req, res) => {
+  // Set content type to plain text and send the Good Evening response
+  // The newline character ensures proper formatting in terminal output
+  res.type('text/plain').send('Good evening\n');
+});
+
+/**
+ * Start the Express server and begin listening for incoming connections.
  * The server binds to the specified hostname and port, then invokes
  * the callback function once it's ready to accept connections.
  *
  * On successful startup, logs the server URL to the console.
  * If the port is already in use, an EADDRINUSE error will be thrown.
  */
-server.listen(port, hostname, () => {
+app.listen(port, hostname, () => {
   // Log the server URL to confirm successful startup
   console.log(`Server running at http://${hostname}:${port}/`);
 });

@@ -1,6 +1,6 @@
 # Hello World HTTP Server
 
-A simple Node.js HTTP server that responds with "Hello, World!" to all incoming requests. This lightweight server demonstrates the basics of creating HTTP servers using Node.js's built-in `http` module.
+A simple Node.js HTTP server using Express.js that provides two endpoints: "/" returning "Hello, World!" and "/evening" returning "Good evening". This lightweight server demonstrates the basics of creating HTTP servers with Express.js routing.
 
 ## Table of Contents
 
@@ -17,7 +17,7 @@ A simple Node.js HTTP server that responds with "Hello, World!" to all incoming 
 
 Before running this server, ensure you have the following installed:
 
-- **Node.js**: Version 12.0.0 or higher (LTS versions recommended)
+- **Node.js**: Version 18.0.0 or higher (LTS versions recommended)
 - **npm**: Typically bundled with Node.js installation
 
 To verify your Node.js installation:
@@ -36,17 +36,23 @@ npm --version
    cd hello_world
    ```
 
-2. **Install dependencies** (if any):
+2. **Install dependencies**:
 
    ```bash
    npm install
    ```
 
-   > Note: This project uses only Node.js built-in modules, so no external dependencies are required.
+   > Note: This project uses Express.js as its web framework. The `npm install` command will install Express.js and all required dependencies.
 
 ## Quick Start
 
-Start the server with a single command:
+Start the server with either of these commands:
+
+```bash
+npm start
+```
+
+Or directly with Node.js:
 
 ```bash
 node server.js
@@ -58,35 +64,42 @@ You should see the following output:
 Server running at http://127.0.0.1:3000/
 ```
 
-Test the server by opening http://127.0.0.1:3000/ in your browser or using curl:
+Test the server endpoints using curl:
 
 ```bash
+# Hello World endpoint
 curl http://127.0.0.1:3000/
-```
+# Expected: Hello, World!
 
-Expected response:
-
-```
-Hello, World!
+# Good Evening endpoint
+curl http://127.0.0.1:3000/evening
+# Expected: Good evening
 ```
 
 ## API Reference
 
-### HTTP Endpoint
+### HTTP Endpoints
+
+| Endpoint | Method | Response | Content-Type | Status Code |
+|----------|--------|----------|--------------|-------------|
+| `/` | GET | `Hello, World!\n` | text/plain | 200 OK |
+| `/evening` | GET | `Good evening\n` | text/plain | 200 OK |
+
+### Hello World Endpoint
 
 | Property | Value |
 |----------|-------|
 | **URL** | `http://127.0.0.1:3000/` |
-| **Methods** | All HTTP methods (GET, POST, PUT, DELETE, PATCH, etc.) |
-| **Paths** | Any path (/, /api, /test, /any/nested/path) |
+| **Method** | GET |
+| **Response** | `Hello, World!\n` |
 
-### Request Format
+### Good Evening Endpoint
 
-The server accepts any HTTP request regardless of:
-- HTTP method
-- URL path
-- Request headers
-- Request body
+| Property | Value |
+|----------|-------|
+| **URL** | `http://127.0.0.1:3000/evening` |
+| **Method** | GET |
+| **Response** | `Good evening\n` |
 
 ### Response Format
 
@@ -94,36 +107,36 @@ The server accepts any HTTP request regardless of:
 |----------|-------|
 | **Status Code** | `200 OK` |
 | **Content-Type** | `text/plain` |
-| **Body** | `Hello, World!\n` |
 
 ### Example Requests
 
-**GET request:**
+**GET Hello World:**
 ```bash
 curl http://127.0.0.1:3000/
+# Response: Hello, World!
 ```
 
-**POST request with data:**
+**GET Good Evening:**
 ```bash
-curl -X POST -d "test data" http://127.0.0.1:3000/api
+curl http://127.0.0.1:3000/evening
+# Response: Good evening
 ```
 
-**Custom headers:**
+**Undefined routes return 404:**
 ```bash
-curl -H "Authorization: Bearer token" http://127.0.0.1:3000/
+curl http://127.0.0.1:3000/nonexistent
+# Response: Cannot GET /nonexistent (404 Not Found)
 ```
-
-All requests return the same response: `Hello, World!`
 
 ## Code Explanation
 
 ### Module Import
 
 ```javascript
-const http = require('http');
+const express = require('express');
 ```
 
-The server uses Node.js's built-in `http` module, which provides functionality to create HTTP servers and clients without any external dependencies.
+The server uses Express.js, a fast and minimalist web framework for Node.js that provides routing and HTTP utility methods.
 
 ### Server Configuration
 
@@ -135,29 +148,36 @@ const port = 3000;
 - **hostname**: Set to `127.0.0.1` (localhost) for security. This restricts the server to only accept connections from the local machine.
 - **port**: Set to `3000`, a common development port. This can be modified if the port is already in use.
 
-### Request Handler
+### Express Application
 
 ```javascript
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('Hello, World!\n');
+const app = express();
+```
+
+Creates an Express application instance that will handle HTTP requests through route handlers.
+
+### Route Handlers
+
+```javascript
+app.get('/', (req, res) => {
+  res.type('text/plain').send('Hello, World!\n');
+});
+
+app.get('/evening', (req, res) => {
+  res.type('text/plain').send('Good evening\n');
 });
 ```
 
-The callback function receives two objects:
-- `req` (IncomingMessage): Contains request information (method, URL, headers)
-- `res` (ServerResponse): Used to send the response
-
-The handler:
-1. Sets the status code to `200` (OK)
-2. Sets the `Content-Type` header to `text/plain`
-3. Sends `Hello, World!` as the response body and closes the connection
+Each route handler:
+- Uses `app.get()` to handle GET requests for a specific path
+- Receives `req` (request) and `res` (response) objects
+- Sets the content type to `text/plain` using `res.type()`
+- Sends the response body using `res.send()`
 
 ### Server Startup
 
 ```javascript
-server.listen(port, hostname, () => {
+app.listen(port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}/`);
 });
 ```
@@ -170,7 +190,7 @@ The `listen()` method binds the server to the specified hostname and port. The c
 
 1. Start the server:
    ```bash
-   node server.js
+   npm start
    ```
 
 2. The server runs in the foreground. Press `Ctrl+C` to stop it.
