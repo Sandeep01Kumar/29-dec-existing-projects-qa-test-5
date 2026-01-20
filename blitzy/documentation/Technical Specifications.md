@@ -246,11 +246,35 @@ This section catalogs all dependencies required for the feature implementation, 
 | dependencies | (not present) | `{ "express": "^5.2.1" }` |
 | main | "index.js" | "server.js" (correction) |
 
+**Security Package Dependencies (Recommended):**
+
+| Package | Version | Registry | Purpose | Weekly Downloads |
+|---------|---------|----------|---------|------------------|
+| helmet | 8.1.0 | npm | Security headers middleware | 2,000,000+ |
+| cors | 2.8.5 | npm | CORS middleware | 10,000,000+ |
+| express-rate-limit | 8.2.1 | npm | Rate limiting middleware | 1,000,000+ |
+| express-validator | 7.3.1 | npm | Input validation middleware | 1,000,000+ |
+
+**Security Package Installation:**
+
+```bash
+npm install helmet@8.1.0 cors@2.8.5 express-rate-limit@8.2.1 express-validator@7.3.1
+```
+
 **Import Updates:**
 
 | File | Current Import | New Import |
 |------|----------------|------------|
 | server.js | `const http = require('http');` | `const express = require('express');` |
+
+**Security Middleware Imports (Recommended):**
+
+| Package | Import Statement |
+|---------|------------------|
+| helmet | `const helmet = require('helmet');` |
+| cors | `const cors = require('cors');` |
+| express-rate-limit | `const rateLimit = require('express-rate-limit');` |
+| express-validator | `const { body, validationResult } = require('express-validator');` |
 
 **Import Transformation Rules:**
 
@@ -827,21 +851,124 @@ This section documents all rules, constraints, and conventions that must be foll
 
 ### 0.7.6 Security Considerations
 
-**Basic Security Posture:**
+**Security Architecture Overview:**
 
-| Aspect | Handling |
-|--------|----------|
-| Input validation | Not required (no user input processed) |
-| Authentication | Not required |
-| Rate limiting | Not required |
-| CORS | Not required (default behavior) |
+This section documents the recommended security hardening features for the Express.js application. For detailed implementation instructions, refer to the [Security Implementation Guide](./Security%20Implementation%20Guide.md).
 
-**Express 5.x Security Features:**
+**Security Middleware Stack:**
+
+```mermaid
+flowchart TB
+    subgraph SecurityPipeline["Security Middleware Pipeline"]
+        Request["Incoming HTTP Request"]
+        Helmet["helmet - Security Headers"]
+        CORS["cors - CORS Policy"]
+        RateLimit["rateLimit - Throttling"]
+        BodyParser["express.json - Body Parsing"]
+        Validator["express-validator - Input Validation"]
+        RouteHandler["Route Handler"]
+        Response["HTTP Response"]
+        
+        Request --> Helmet
+        Helmet --> CORS
+        CORS --> RateLimit
+        RateLimit --> BodyParser
+        BodyParser --> Validator
+        Validator --> RouteHandler
+        RouteHandler --> Response
+    end
+```
+
+**Security Feature Matrix:**
+
+| Security Feature | Package | Version | Purpose | Status |
+|-----------------|---------|---------|---------|--------|
+| Security Headers | helmet | 8.1.0 | Sets 13 HTTP security headers | Documented |
+| CORS Policy | cors | 2.8.5 | Cross-origin resource sharing control | Documented |
+| Rate Limiting | express-rate-limit | 8.2.1 | Request throttling and abuse prevention | Documented |
+| Input Validation | express-validator | 7.3.1 | Request data validation and sanitization | Documented |
+| HTTPS/TLS | Node.js https | built-in | Encrypted transport layer | Documented |
+
+**Helmet.js Security Headers (Default Configuration):**
+
+| Header | Purpose | Default Value |
+|--------|---------|---------------|
+| Content-Security-Policy | Prevents XSS attacks | `default-src 'self'` |
+| Cross-Origin-Opener-Policy | Isolates browsing context | `same-origin` |
+| Cross-Origin-Resource-Policy | Controls resource sharing | `same-origin` |
+| Origin-Agent-Cluster | Requests origin-keyed cluster | `?1` |
+| Referrer-Policy | Controls referrer information | `no-referrer` |
+| Strict-Transport-Security | Enforces HTTPS | `max-age=15552000; includeSubDomains` |
+| X-Content-Type-Options | Prevents MIME sniffing | `nosniff` |
+| X-DNS-Prefetch-Control | Controls DNS prefetching | `off` |
+| X-Download-Options | Prevents file opening (IE) | `noopen` |
+| X-Frame-Options | Prevents clickjacking | `SAMEORIGIN` |
+| X-Permitted-Cross-Domain-Policies | Controls Flash/Acrobat | `none` |
+| X-XSS-Protection | Disables XSS auditor | `0` |
+| X-Powered-By | Hide technology stack | (removed) |
+
+**CORS Configuration Options:**
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `origin` | String/Array/Function | `*` | Allowed origins |
+| `methods` | String/Array | `GET,HEAD,PUT,PATCH,POST,DELETE` | Allowed HTTP methods |
+| `allowedHeaders` | String/Array | (reflects request) | Allowed request headers |
+| `exposedHeaders` | String/Array | None | Headers exposed to client |
+| `credentials` | Boolean | `false` | Allow credentials |
+| `maxAge` | Number | None | Preflight cache duration |
+| `preflightContinue` | Boolean | `false` | Pass to next handler |
+| `optionsSuccessStatus` | Number | `204` | OPTIONS success status |
+
+**Rate Limiting Configuration:**
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `windowMs` | Number | `60000` | Time window in milliseconds |
+| `limit` | Number | `5` | Max requests per window |
+| `message` | String/Object | `Too many requests...` | Response when exceeded |
+| `statusCode` | Number | `429` | HTTP status when exceeded |
+| `standardHeaders` | Boolean/String | `draft-6` | RateLimit header format |
+| `legacyHeaders` | Boolean | `true` | X-RateLimit headers |
+
+**Input Validation Methods:**
+
+| Method | Description | Example |
+|--------|-------------|---------|
+| `body(field)` | Validate request body | `body('email').isEmail()` |
+| `query(field)` | Validate query parameter | `query('page').isInt()` |
+| `param(field)` | Validate route parameter | `param('id').isUUID()` |
+| `validationResult(req)` | Get validation errors | Returns errors array |
+
+**Express 5.x Built-in Security Features:**
 
 | Feature | Status |
 |---------|--------|
 | Updated path-to-regexp | Automatically included (ReDoS mitigation) |
 | Promise rejection handling | Built-in (middleware can return rejected promises) |
+
+**Security Testing Commands:**
+
+```bash
+# Verify security headers
+curl -I http://localhost:3000/
+
+# Test rate limiting
+for i in {1..110}; do curl -s -o /dev/null -w "%{http_code}\n" http://localhost:3000/; done
+
+# Test CORS preflight
+curl -X OPTIONS http://localhost:3000/ -H "Origin: https://example.com" -I
+```
+
+**Security Documentation Reference:**
+
+| Document | Purpose |
+|----------|---------|
+| [Security Implementation Guide](./Security%20Implementation%20Guide.md) | Complete security middleware setup guide |
+| https://helmetjs.github.io | Helmet.js official documentation |
+| https://expressjs.com/en/resources/middleware/cors.html | CORS middleware documentation |
+| https://express-rate-limit.mintlify.app | Rate limiting documentation |
+| https://express-validator.github.io | Input validation documentation |
 
 ### 0.7.7 Documentation Rules
 

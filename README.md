@@ -118,8 +118,63 @@ hao-backprop-test/
 ├── server.js          # Main Express.js server with route handlers
 ├── package.json       # Project manifest with dependencies
 ├── package-lock.json  # Dependency lock file
-└── README.md          # This documentation file
+├── README.md          # This documentation file
+└── blitzy/
+    └── documentation/
+        ├── Technical Specifications.md    # Technical documentation
+        ├── Project Guide.md               # Project assessment
+        └── Security Implementation Guide.md  # Security hardening guide
 ```
+
+## Security
+
+For production deployments, this application supports security hardening through the following middleware packages:
+
+### Recommended Security Packages
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| helmet | 8.1.0 | HTTP security headers |
+| cors | 2.8.5 | Cross-origin resource sharing |
+| express-rate-limit | 8.2.1 | Request rate limiting |
+| express-validator | 7.3.1 | Input validation |
+
+### Quick Security Setup
+
+```bash
+# Install security packages
+npm install helmet cors express-rate-limit express-validator
+```
+
+### Basic Security Configuration
+
+```javascript
+const helmet = require('helmet');
+const cors = require('cors');
+const rateLimit = require('express-rate-limit');
+
+// Add security middleware (in order)
+app.use(helmet());
+app.use(cors());
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 100
+}));
+```
+
+### Verify Security Headers
+
+```bash
+curl -I http://localhost:3000/
+```
+
+Expected headers (with Helmet enabled):
+- `Content-Security-Policy`
+- `Strict-Transport-Security`
+- `X-Content-Type-Options`
+- `X-Frame-Options`
+
+For complete security implementation details, refer to the [Security Implementation Guide](blitzy/documentation/Security%20Implementation%20Guide.md).
 
 ## License
 
